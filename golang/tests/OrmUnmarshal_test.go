@@ -6,6 +6,7 @@ import (
 	. "github.com/saichler/utils/golang"
 	. "github.com/saichler/utils/golang/tests"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -193,6 +194,12 @@ func TestUnMarshalPtrSliceNoKey(t *testing.T) {
 				} else if sn.String=="" {
 					t.Fail()
 					Error("Expected String to not be blank")
+				} else {
+					expected:="SubNode1-"+strconv.Itoa(node.Index)
+					if !strings.Contains(sn.String,expected) {
+						t.Fail()
+						Error("subnode1 string does not contain:"+expected+" and is:"+sn.String)
+					}
 				}
 			}
 		}
