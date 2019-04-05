@@ -203,14 +203,14 @@ func TestUnMarshalPtrSliceNoKey(t *testing.T) {
 	}
 	for _,n:=range instances {
 		node:=n.(*Node)
-		if node.SubNode1Slice==nil {
+		if node.SlicePtrNoKey==nil {
 			t.Fail()
 			Error("Expected ptr slice to exist")
-		} else if len(node.SubNode1Slice)!=3 {
+		} else if len(node.SlicePtrNoKey)!=3 {
 			t.Fail()
 			Error("Expected int slice of size 4 but got "+strconv.Itoa(len(node.SliceInt)))
 		} else {
-			for _,sn:=range node.SubNode1Slice {
+			for _,sn:=range node.SlicePtrNoKey {
 				if sn==nil {
 					t.Fail()
 					Error("Nil Entry in slice")
@@ -259,6 +259,82 @@ func TestUnMarshalPtrSliceKey(t *testing.T) {
 					if !strings.Contains(sn.String,expected) {
 						t.Fail()
 						Error("subnode1 string does not contain:"+expected+" and is:"+sn.String)
+					}
+				}
+			}
+		}
+	}
+}
+
+func TestUnMarshalMap(t *testing.T) {
+	tx:=&Transaction{}
+	m:=initMarshaler(size,tx)
+	q:=NewQuery("Node",true)
+	instances:=m.UnMarshal(q)
+	if len(instances)!=size {
+		t.Fail()
+		Error("Expected:"+strconv.Itoa(size)+" but got "+strconv.Itoa(len(instances)))
+	}
+	for _,n:=range instances {
+		node:=n.(*Node)
+		if node.MapIntString==nil {
+			t.Fail()
+			Error("Expected map to exist")
+		} else if len(node.MapIntString)!=2 {
+			t.Fail()
+			Error("Expected int slice of size 4 but got "+strconv.Itoa(len(node.MapIntString)))
+		} else {
+			for k,sn:=range node.MapIntString {
+				if sn=="" {
+					t.Fail()
+					Error("Empty Value in map")
+				} else if k==0 {
+					t.Fail()
+					Error("Empty Key in map")
+				} else {
+					expected1:="3+"+strconv.Itoa(node.Index)
+					expected2:="4+"+strconv.Itoa(node.Index)
+					if sn!=expected1 && sn!=expected2 {
+						t.Fail()
+						Error("map value does not contain expected:"+sn)
+					}
+				}
+			}
+		}
+	}
+}
+
+func TestUnMarshalMapPtrNoKey(t *testing.T) {
+	tx:=&Transaction{}
+	m:=initMarshaler(size,tx)
+	q:=NewQuery("Node",true)
+	instances:=m.UnMarshal(q)
+	if len(instances)!=size {
+		t.Fail()
+		Error("Expected:"+strconv.Itoa(size)+" but got "+strconv.Itoa(len(instances)))
+	}
+	for _,n:=range instances {
+		node:=n.(*Node)
+		if node.MapStringPtrNoKey==nil {
+			t.Fail()
+			Error("Expected map to exist")
+		} else if len(node.MapIntString)!=2 {
+			t.Fail()
+			Error("Expected int slice of size 4 but got "+strconv.Itoa(len(node.MapIntString)))
+		} else {
+			for k,sn:=range node.MapIntString {
+				if sn=="" {
+					t.Fail()
+					Error("Empty Value in map")
+				} else if k==0 {
+					t.Fail()
+					Error("Empty Key in map")
+				} else {
+					expected1:="3+"+strconv.Itoa(node.Index)
+					expected2:="4+"+strconv.Itoa(node.Index)
+					if sn!=expected1 && sn!=expected2 {
+						t.Fail()
+						Error("map value does not contain expected:"+sn)
 					}
 				}
 			}

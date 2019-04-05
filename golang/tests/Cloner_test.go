@@ -58,6 +58,6 @@ func TestCloner(t *testing.T) {
 	fmt.Println(testClone.SliceOfPtr[1].String)
 	fmt.Println(testClone.SliceOfPtr[1].SliceInt[1])
 	fmt.Println(testClone.SliceOfPtr[1].SliceString[1])
-	fmt.Println(testClone.SliceOfPtr[1].MapStringPtr["B"].String)
+	fmt.Println(testClone.SliceOfPtr[1].MapStringPtrNoKey["B"].String)
 	fmt.Println(testClone.SliceOfPtr[1].MapIntString[44])
 }

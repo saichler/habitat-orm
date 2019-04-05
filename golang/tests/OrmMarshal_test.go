@@ -1,11 +1,11 @@
 package tests
 
 import (
-	. "github.com/saichler/utils/golang"
 	. "github.com/saichler/habitat-orm/golang/common"
 	. "github.com/saichler/habitat-orm/golang/marshal"
 	. "github.com/saichler/habitat-orm/golang/registry"
 	. "github.com/saichler/habitat-orm/golang/transaction"
+	. "github.com/saichler/utils/golang"
 	. "github.com/saichler/utils/golang/tests"
 	"strconv"
 	"testing"
@@ -149,10 +149,10 @@ func TestMarshalPtrNoKey(t *testing.T) {
 			t.Fail()
 			Error("No Recrod was found with id:"+strconv.Itoa(i))
 		}
-		val:=rec.Get("PtrNoKey")
-		if val.IsValid() {
+		val:=rec.Get("PtrNoKey").String()
+		if val!="0" {
 			t.Fail()
-			Error("Expected not valid but got valid")
+			Error("Expected 0 string but got:"+val)
 		}
 	}
 }
@@ -185,10 +185,10 @@ func TestMarshalSlicePtrWithoutKey(t *testing.T) {
 			t.Fail()
 			Error("No Recrod was found with id:"+strconv.Itoa(i))
 		}
-		val:=rec.Get("PtrNoKey")
-		if val.IsValid() {
+		val:=rec.Get("SlicePtrNoKey").String()
+		if val!="[0,1,2]" {
 			t.Fail()
-			Error("Expected an invalid value ")
+			Error("Expected [0,1,2] but got:"+val)
 		}
 	}
 }
@@ -207,6 +207,25 @@ func TestMarshalMapIntString(t *testing.T) {
 		expected1:="["+s1+","+s2+"]"
 		expected2:="["+s2+","+s1+"]"
 		val:=rec.Get("MapIntString").String()
+		if val!=expected1 && val!=expected2 {
+			t.Fail()
+			Error("Did not find "+expected1)
+		}
+	}
+}
+
+func TestMarshalMapStringPtr(t *testing.T) {
+	tx := initTest(size)
+	nodeRecords := tx.AllRecords("Node")
+	for i:=0;i<size;i++ {
+		rec := findNodeRecords(nodeRecords, i)
+		if rec == nil {
+			t.Fail()
+			Error("No Recrod was found with id:" + strconv.Itoa(i))
+		}
+		expected1:="["+strconv.Itoa(i)+"-key-1=0,"+strconv.Itoa(i)+"-key-2=1]"
+		expected2:="["+strconv.Itoa(i)+"-key-2=0,"+strconv.Itoa(i)+"-key-1=1]"
+		val:=rec.Get("MapStringPtrNoKey").String()
 		if val!=expected1 && val!=expected2 {
 			t.Fail()
 			Error("Did not find "+expected1)
@@ -249,13 +268,16 @@ func TestMarshalNumberOfRecords(t *testing.T) {
 	nodeRecords:=tx.AllRecords("Node")
 	if len(nodeRecords)!=30 {
 		t.Fail()
-		Error("Expected 30 but got:"+strconv.Itoa(len(nodeRecords)))
-		return
+		Error("Node: Expected 30 but got:"+strconv.Itoa(len(nodeRecords)))
 	}
 	nodeRecords=tx.AllRecords("SubNode1")
 	if len(nodeRecords)!=20 {
 		t.Fail()
-		Error("Expected 20 but got:"+strconv.Itoa(len(nodeRecords)))
-		return
+		Error("SubNode1: Expected 20 but got:"+strconv.Itoa(len(nodeRecords)))
+	}
+	nodeRecords=tx.AllRecords("SubNode6")
+	if len(nodeRecords)!=10 {
+		t.Fail()
+		Error("SubNode6: Expected 10 but got:"+strconv.Itoa(len(nodeRecords)))
 	}
 }

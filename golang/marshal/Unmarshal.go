@@ -145,7 +145,20 @@ func getStruct(column *Column, record *Record, id *RecordID, tx *Transaction) re
 }
 
 func getMap(column *Column, record *Record, id *RecordID, tx *Transaction) reflect.Value {
-	//@TODO
+	value := record.Get(column.Name())
+	vString := value.String()
+	if value.IsValid() {
+		if vString=="" {
+			return reflect.ValueOf(nil)
+		}
+		if column.MetaData().ColumnTableName() == "" {
+			return utils.FromString(vString, column.Type())
+		} else {
+			//fmt.Println("valid"+vString)
+		}
+	} else {
+		//fmt.Println("not valid"+vString)
+	}
 	return reflect.ValueOf(nil)
 }
 
@@ -163,29 +176,32 @@ func getSlice(column *Column, record *Record, id *RecordID, tx *Transaction) ref
 			if table==nil {
 				panic("No Table was found with name:"+column.MetaData().ColumnTableName())
 			}
-			elemsList:=record.Get(column.Name()).String()
-			elemsList = elemsList[1:len(elemsList)-1]
-			keys:=strings.Split(elemsList,",")
-			newSlice := reflect.MakeSlice(column.Type(), len(keys), len(keys))
-			for i,key:=range keys {
-				rec:=tx.Records(table.Name(),key)[0]
-				newSlice.Index(i).Set(getStruct(column,rec,NewRecordID(),tx))
+			if table.Indexes().PrimaryIndex()!=nil {
+				elemsList := record.Get(column.Name()).String()
+				elemsList = elemsList[1 : len(elemsList)-1]
+				keys := strings.Split(elemsList, ",")
+				newSlice := reflect.MakeSlice(column.Type(), len(keys), len(keys))
+				for i, key := range keys {
+					rec := tx.Records(table.Name(), key)[0]
+					newSlice.Index(i).Set(getStruct(column, rec, NewRecordID(), tx))
+				}
+				return newSlice
+			} else {
+				recs := tx.Records(table.Name(), id.String())
+				newSlice := reflect.MakeSlice(column.Type(), len(recs), len(recs))
+				for i, rec := range recs {
+					elem := getStruct(column, rec, id, tx)
+					newSlice.Index(i).Set(elem)
+
+				}
+				return newSlice
 			}
-			return newSlice
 		}
 	} else if column.MetaData().ColumnTableName() != "" {
 		table := column.Table().OrmRegistry().Table(column.MetaData().ColumnTableName())
 		if table == nil {
 			panic("No Table was found with name:" + column.MetaData().ColumnTableName())
 		}
-		recs := tx.Records(table.Name(), id.String())
-		newSlice := reflect.MakeSlice(column.Type(), len(recs), len(recs))
-		for i, rec := range recs {
-			elem := getStruct(column, rec, id, tx)
-			newSlice.Index(i).Set(elem)
-
-		}
-		return newSlice
 	}
 	return reflect.ValueOf(nil)
 }

@@ -125,10 +125,7 @@ func structMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Pers
 		if err != nil {
 			return reflect.ValueOf(rec), err
 		}
-		sbTable := r.Table(sbColumn.MetaData().ColumnTableName())
-		if sbTable.Indexes().PrimaryIndex() != nil {
-			rec.SetInterface(sbColumn.Name(), utils.ToString(sbValue))
-		}
+		rec.SetInterface(sbColumn.Name(), utils.ToString(sbValue))
 		rid.Del()
 	}
 	return reflect.ValueOf(recordID), nil
@@ -156,12 +153,13 @@ func sliceMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Persi
 
 func mapMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Persistency, rid *RecordID) (reflect.Value, error) {
 	if value.IsNil() {
-		return value, nil
+		return reflect.ValueOf(""), nil
 	}
 	sb := utils.NewStringBuilder("[")
 	mapKeys := value.MapKeys()
 	for i, key := range mapKeys {
 		mv := value.MapIndex(key)
+		rid.SetIndex(i)
 		v, e := marshal(mv, r, tx, pr, rid)
 		if e != nil {
 			panic("Unable To marshal!")
