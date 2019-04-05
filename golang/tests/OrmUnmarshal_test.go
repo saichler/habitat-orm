@@ -169,6 +169,29 @@ func TestUnMarshalPtrKey(t *testing.T) {
 	}
 }
 
+func TestUnMarshalPtrNoKey(t *testing.T) {
+	tx:=&Transaction{}
+	m:=initMarshaler(size,tx)
+	q:=NewQuery("Node",true)
+	instances:=m.UnMarshal(q)
+	if len(instances)!=size {
+		t.Fail()
+		Error("Expected:"+strconv.Itoa(size)+" but got "+strconv.Itoa(len(instances)))
+	}
+	for i:=0;i<size;i++ {
+		for _,n:=range instances {
+			node:=n.(*Node)
+			if node.PtrNoKey==nil {
+				t.Fail()
+				Error("Expected ptr no key to exist")
+			} else if node.PtrNoKey.String=="" {
+				t.Fail()
+				Error("Expected ptr no key name not to be blank ")
+			}
+		}
+	}
+}
+
 func TestUnMarshalPtrSliceNoKey(t *testing.T) {
 	tx:=&Transaction{}
 	m:=initMarshaler(size,tx)
@@ -196,6 +219,43 @@ func TestUnMarshalPtrSliceNoKey(t *testing.T) {
 					Error("Expected String to not be blank")
 				} else {
 					expected:="SubNode1-"+strconv.Itoa(node.Index)
+					if !strings.Contains(sn.String,expected) {
+						t.Fail()
+						Error("subnode1 string does not contain:"+expected+" and is:"+sn.String)
+					}
+				}
+			}
+		}
+	}
+}
+
+func TestUnMarshalPtrSliceKey(t *testing.T) {
+	tx:=&Transaction{}
+	m:=initMarshaler(size,tx)
+	q:=NewQuery("Node",true)
+	instances:=m.UnMarshal(q)
+	if len(instances)!=size {
+		t.Fail()
+		Error("Expected:"+strconv.Itoa(size)+" but got "+strconv.Itoa(len(instances)))
+	}
+	for _,n:=range instances {
+		node:=n.(*Node)
+		if node.SliceOfPtr==nil {
+			t.Fail()
+			Error("Expected ptr slice to exist")
+		} else if len(node.SliceOfPtr)!=4 {
+			t.Fail()
+			Error("Expected int slice of size 4 but got "+strconv.Itoa(len(node.SliceInt)))
+		} else {
+			for _,sn:=range node.SliceOfPtr {
+				if sn==nil {
+					t.Fail()
+					Error("Nil Entry in slice")
+				} else if sn.String=="" {
+					t.Fail()
+					Error("Expected String to not be blank")
+				} else {
+					expected:=strconv.Itoa(node.Index)+"-Sub-Child-"
 					if !strings.Contains(sn.String,expected) {
 						t.Fail()
 						Error("subnode1 string does not contain:"+expected+" and is:"+sn.String)

@@ -6,6 +6,7 @@ import (
 	. "github.com/saichler/habitat-orm/golang/transaction"
 	"github.com/saichler/utils/golang"
 	"reflect"
+	"strings"
 )
 
 var getters = make(map[reflect.Kind]func(*Column, *Record, *RecordID, *Transaction) reflect.Value)
@@ -158,16 +159,19 @@ func getSlice(column *Column, record *Record, id *RecordID, tx *Transaction) ref
 		if column.MetaData().ColumnTableName() == "" {
 			return utils.FromString(vString, column.Type())
 		} else {
-			//Keyed ptr slice
-			/*
 			table:=column.Table().OrmRegistry().Table(column.MetaData().ColumnTableName())
 			if table==nil {
 				panic("No Table was found with name:"+column.MetaData().ColumnTableName())
 			}
-			//recs:=tx.Records(table.Name(),id.String())
-			fmt.Println(column.Name()+":"+vString)
-			fmt.Println(id.String())
-			*/
+			elemsList:=record.Get(column.Name()).String()
+			elemsList = elemsList[1:len(elemsList)-1]
+			keys:=strings.Split(elemsList,",")
+			newSlice := reflect.MakeSlice(column.Type(), len(keys), len(keys))
+			for i,key:=range keys {
+				rec:=tx.Records(table.Name(),key)[0]
+				newSlice.Index(i).Set(getStruct(column,rec,NewRecordID(),tx))
+			}
+			return newSlice
 		}
 	} else if column.MetaData().ColumnTableName() != "" {
 		table := column.Table().OrmRegistry().Table(column.MetaData().ColumnTableName())
