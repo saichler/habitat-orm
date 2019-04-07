@@ -341,3 +341,40 @@ func TestUnMarshalMapPtrNoKey(t *testing.T) {
 		}
 	}
 }
+
+func TestUnMarshalMapPtrKey(t *testing.T) {
+	tx:=&Transaction{}
+	m:=initMarshaler(size,tx)
+	q:=NewQuery("Node",true)
+	instances:=m.UnMarshal(q)
+	if len(instances)!=size {
+		t.Fail()
+		Error("Expected:"+strconv.Itoa(size)+" but got "+strconv.Itoa(len(instances)))
+	}
+	for _,n:=range instances {
+		node:=n.(*Node)
+		if node.MapPrimary==nil {
+			t.Fail()
+			Error("Expected map to exist")
+		} else if len(node.MapPrimary)!=2 {
+			t.Fail()
+			Error("Expected int slice of size 2 but got "+strconv.Itoa(len(node.MapPrimary)))
+		} else {
+			for k,sn:=range node.MapPrimary {
+				if sn.String=="" {
+					t.Fail()
+					Error("Empty Value in map")
+				} else if k=="" {
+					t.Fail()
+					Error("Empty Key in map")
+				} else {
+					expected:="Subnode6-"+strconv.Itoa(node.Index)
+					if !strings.Contains(sn.String,expected) {
+						t.Fail()
+						Error("map value does not contain expected:"+expected)
+					}
+				}
+			}
+		}
+	}
+}

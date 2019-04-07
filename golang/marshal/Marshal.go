@@ -6,6 +6,7 @@ import (
 	. "github.com/saichler/habitat-orm/golang/transaction"
 	"github.com/saichler/utils/golang"
 	"reflect"
+	"strconv"
 )
 
 type Marshaler struct {
@@ -88,7 +89,7 @@ func structMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Pers
 	rec := &Record{}
 	rec.SetInterface(RECORD_LEVEL, rid.Level())
 	if table.Indexes().PrimaryIndex() == nil {
-		rec.SetInterface(RECORD_ID, rid.String()+rid.Index())
+		rec.SetInterface(RECORD_ID, rid.String()+strconv.Itoa(rid.Index))
 	}
 	subTables := make([]*Column, 0)
 	for fieldName, column := range table.Columns() {
@@ -108,25 +109,26 @@ func structMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Pers
 
 	if table.Indexes().PrimaryIndex() != nil {
 		recordID = rec.PrimaryIndex(table.Indexes().PrimaryIndex())
-	} else {
-		recordID = rid.Index()
-	}
-
-	if table.Indexes().PrimaryIndex() == nil {
-		tx.AddRecord(rec, tableName, rid.String())
-	} else {
 		tx.AddRecord(rec, tableName, recordID)
+	} else {
+		tx.AddRecord(rec, tableName, rid.String())
+		recordID=strconv.Itoa(rid.Index)
 	}
 
 	for _, sbColumn := range subTables {
-		rid.Add(table.Name(), sbColumn.Name(), recordID)
+		isTable:=sbColumn.MetaData().ColumnTableName()!=""
+		if isTable {
+			rid.Add(table.Name(), sbColumn.Name(), recordID)
+		}
 		fieldValue := value.FieldByName(sbColumn.Name())
 		sbValue, err := marshal(fieldValue, r, tx, pr, rid)
 		if err != nil {
 			return reflect.ValueOf(rec), err
 		}
 		rec.SetInterface(sbColumn.Name(), utils.ToString(sbValue))
-		rid.Del()
+		if isTable {
+			rid.Del()
+		}
 	}
 	return reflect.ValueOf(recordID), nil
 }
@@ -137,7 +139,7 @@ func sliceMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Persi
 	}
 	sb := utils.NewStringBuilder("[")
 	for i := 0; i < value.Len(); i++ {
-		rid.SetIndex(i)
+		rid.Index = i
 		v, e := marshal(value.Index(i), r, tx, pr, rid)
 		if e != nil {
 			panic("Unable To marshal!")
@@ -159,7 +161,8 @@ func mapMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Persist
 	mapKeys := value.MapKeys()
 	for i, key := range mapKeys {
 		mv := value.MapIndex(key)
-		rid.SetIndex(i)
+		keyString:=utils.ToString(key)
+		rid.Index =i
 		v, e := marshal(mv, r, tx, pr, rid)
 		if e != nil {
 			panic("Unable To marshal!")
@@ -167,7 +170,7 @@ func mapMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Persist
 		if i > 0 {
 			sb.Append(",")
 		}
-		sb.Append(utils.ToString(key))
+		sb.Append(keyString)
 		sb.Append("=")
 		sb.Append(utils.ToString(v))
 	}

@@ -1,11 +1,13 @@
 package marshal
 
 import (
+	"fmt"
 	. "github.com/saichler/habitat-orm/golang/common"
 	. "github.com/saichler/habitat-orm/golang/registry"
 	. "github.com/saichler/habitat-orm/golang/transaction"
 	"github.com/saichler/utils/golang"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -154,10 +156,31 @@ func getMap(column *Column, record *Record, id *RecordID, tx *Transaction) refle
 		if column.MetaData().ColumnTableName() == "" {
 			return utils.FromString(vString, column.Type())
 		} else {
-			//fmt.Println("valid"+vString)
+			table:=column.Table().OrmRegistry().Table(column.MetaData().ColumnTableName())
+			if table==nil {
+				panic("No Table was found with name:"+column.MetaData().ColumnTableName())
+			}
+			elems:=getElements(record,column)
+			m := reflect.MakeMapWithSize(column.Type(), len(elems))
+			for i,v:=range elems {
+				if table.Indexes().PrimaryIndex() == nil {
+					key:=strconv.Itoa(i)
+					fmt.Println(key)
+				} else {
+					index:=strings.Index(v,"=")
+					key:=v[0:index]
+					val:=v[index+1:]
+					recs:=tx.Records(table.Name(),val)
+					if recs==nil || len(recs)!=1 {
+						panic("Cannot find records for key:"+val)
+					} else {
+						sval:=getStruct(column, recs[0], NewRecordID(), tx)
+						m.SetMapIndex(utils.FromString(key,column.Type().Key()),sval)
+					}
+				}
+			}
+			return m
 		}
-	} else {
-		//fmt.Println("not valid"+vString)
 	}
 	return reflect.ValueOf(nil)
 }
@@ -177,9 +200,7 @@ func getSlice(column *Column, record *Record, id *RecordID, tx *Transaction) ref
 				panic("No Table was found with name:"+column.MetaData().ColumnTableName())
 			}
 			if table.Indexes().PrimaryIndex()!=nil {
-				elemsList := record.Get(column.Name()).String()
-				elemsList = elemsList[1 : len(elemsList)-1]
-				keys := strings.Split(elemsList, ",")
+				keys:=getElements(record,column)
 				newSlice := reflect.MakeSlice(column.Type(), len(keys), len(keys))
 				for i, key := range keys {
 					rec := tx.Records(table.Name(), key)[0]
@@ -204,4 +225,11 @@ func getSlice(column *Column, record *Record, id *RecordID, tx *Transaction) ref
 		}
 	}
 	return reflect.ValueOf(nil)
+}
+
+func getElements(record *Record,column *Column) []string {
+	elementsString := record.Get(column.Name()).String()
+	elementsString = elementsString[1 : len(elementsString)-1]
+	elems := strings.Split(elementsString, ",")
+	return elems
 }

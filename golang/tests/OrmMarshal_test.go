@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	. "github.com/saichler/habitat-orm/golang/common"
 	. "github.com/saichler/habitat-orm/golang/marshal"
 	. "github.com/saichler/habitat-orm/golang/registry"
@@ -150,9 +151,9 @@ func TestMarshalPtrNoKey(t *testing.T) {
 			Error("No Recrod was found with id:"+strconv.Itoa(i))
 		}
 		val:=rec.Get("PtrNoKey").String()
-		if val!="0" {
+		if val!=strconv.Itoa(NO_INDEX){
 			t.Fail()
-			Error("Expected 0 string but got:"+val)
+			Error("Expected "+strconv.Itoa(NO_INDEX)+" string but got:"+val)
 		}
 	}
 }
@@ -188,7 +189,7 @@ func TestMarshalSlicePtrWithoutKey(t *testing.T) {
 		val:=rec.Get("SlicePtrNoKey").String()
 		if val!="[0,1,2]" {
 			t.Fail()
-			Error("Expected [0,1,2] but got:"+val)
+			Error("Expected [+,+,+] but got:"+val)
 		}
 	}
 }
@@ -223,12 +224,13 @@ func TestMarshalMapStringPtr(t *testing.T) {
 			t.Fail()
 			Error("No Recrod was found with id:" + strconv.Itoa(i))
 		}
-		expected1:="["+strconv.Itoa(i)+"-key-1=0,"+strconv.Itoa(i)+"-key-2=1]"
-		expected2:="["+strconv.Itoa(i)+"-key-2=0,"+strconv.Itoa(i)+"-key-1=1]"
+		is:=strconv.Itoa(i)
+		expected1:="[k1-"+is+"=0,"+"k2-"+is+"=1]"
+		expected2:="[k2-"+is+"=0,"+"k1-"+is+"=1]"
 		val:=rec.Get("MapStringPtrNoKey").String()
 		if val!=expected1 && val!=expected2 {
 			t.Fail()
-			Error("Did not find "+expected1)
+			Error("Did not find "+expected1+" IN "+val)
 		}
 	}
 }
@@ -244,9 +246,16 @@ func TestMarshalKeyPath(t *testing.T) {
 				expected:="[Node.SubNode2Slice=String-"+si1+"][SubNode2.SliceInSlice="+si2+"]"+si3
 				found:=false
 				id:=NewRecordID()
-				id.Add("Node","SubNode2Slice","String-"+strconv.Itoa(i1))
-				id.Add("SubNode2","SliceInSlice",strconv.Itoa(i2))
+				id.Add("Node","SubNode2Slice","String-"+si1)
+				id.Add("SubNode2","SliceInSlice",si2)
+				id.Index = i2
 				nodeRecords := tx.Records("SubNode3",id.String())
+				if nodeRecords==nil || len(nodeRecords)!=3 {
+					t.Fail()
+					Error("Expected 3 records but got: "+strconv.Itoa(len(nodeRecords)))
+					fmt.Println(id.String())
+					continue
+				}
 				for _,rec:=range nodeRecords {
 					val:=rec.Get(RECORD_ID).String()
 					if val==expected {

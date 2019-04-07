@@ -2,26 +2,26 @@ package common
 
 import (
 	"github.com/saichler/utils/golang"
-	"strconv"
 )
 
 type RecordID struct {
 	entries  []*RecordIDEntry
 	location int
+	Index    int
 }
 
 type RecordIDEntry struct {
-	elementType string
-	elementAttribute string
-	elementId string
-	index int
+	tableName string
+	columnName string
+	parentKey string
 }
 
 func (rid *RecordIDEntry) String() string {
 	result:=utils.NewStringBuilder("[")
-	result.Append(rid.elementType).Append(".")
-	result.Append(rid.elementAttribute).Append("=")
-	result.Append(rid.elementId).Append("]")
+	result.Append(rid.tableName).Append(".")
+	result.Append(rid.columnName).Append("=")
+	result.Append(rid.parentKey)
+	result.Append("]")
 	return result.String()
 }
 
@@ -32,30 +32,21 @@ func NewRecordID() *RecordID {
 	return rid
 }
 
-func (rid *RecordID) Add(elementType,elementAttribute,id string) {
+func (rid *RecordID) Add(tableName,columnName,parentKey string) {
 	if rid.entries==nil {
 		panic("RecordID was not created with NewRecordID method.")
 	}
 	ride :=&RecordIDEntry{}
-	ride.elementAttribute = elementAttribute
-	ride.elementId = id
-	ride.elementType = elementType
+	ride.tableName = tableName
+	ride.columnName = columnName
+	ride.parentKey = parentKey
 	rid.entries = append(rid.entries, ride)
 	rid.location++
+	rid.Index = NO_INDEX
 }
 
-func (rid *RecordID) SetIndex(index int) {
-	if rid.location >-1 {
-		rid.entries[rid.location].index = index
-	}
-}
-
-func (rid *RecordID) Index() string {
-	return strconv.Itoa(rid.entries[rid.location].index)
-}
-
-func (rid *RecordID) Set(id string) {
-	rid.entries[rid.location].elementId=id
+func (rid *RecordID) SetParentKey(parentKey string) {
+	rid.entries[rid.location].parentKey=parentKey
 }
 
 func (rid *RecordID) Del(){
