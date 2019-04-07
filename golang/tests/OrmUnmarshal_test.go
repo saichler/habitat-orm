@@ -318,9 +318,9 @@ func TestUnMarshalMapPtrNoKey(t *testing.T) {
 		if node.MapStringPtrNoKey==nil {
 			t.Fail()
 			Error("Expected map to exist")
-		} else if len(node.MapIntString)!=2 {
+		} else if len(node.MapStringPtrNoKey)!=2 {
 			t.Fail()
-			Error("Expected int slice of size 4 but got "+strconv.Itoa(len(node.MapIntString)))
+			Error("Expected int slice of size 2 but got "+strconv.Itoa(len(node.MapStringPtrNoKey)))
 		} else {
 			for k,sn:=range node.MapIntString {
 				if sn=="" {

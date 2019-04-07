@@ -1,7 +1,6 @@
 package marshal
 
 import (
-	"fmt"
 	. "github.com/saichler/habitat-orm/golang/common"
 	. "github.com/saichler/habitat-orm/golang/registry"
 	. "github.com/saichler/habitat-orm/golang/transaction"
@@ -162,14 +161,26 @@ func getMap(column *Column, record *Record, id *RecordID, tx *Transaction) refle
 			}
 			elems:=getElements(record,column)
 			m := reflect.MakeMapWithSize(column.Type(), len(elems))
-			for i,v:=range elems {
+			for _,v:=range elems {
+				index:=strings.Index(v,"=")
+				key:=v[0:index]
+				val:=v[index+1:]
 				if table.Indexes().PrimaryIndex() == nil {
-					key:=strconv.Itoa(i)
-					fmt.Println(key)
+					recid:=id.String()
+					recs:=tx.Records(table.Name(),recid)
+					if recs==nil || len(recs)==0 {
+						continue
+					}
+					for _,r:=range recs {
+						subRecID:=r.Get(RECORD_ID).String()
+						if subRecID==recid+val {
+							iv,_:=strconv.Atoi(val)
+							id.Index=iv
+							sval:=getStruct(column, r, id, tx)
+							m.SetMapIndex(utils.FromString(key,column.Type().Key()),sval)
+						}
+					}
 				} else {
-					index:=strings.Index(v,"=")
-					key:=v[0:index]
-					val:=v[index+1:]
 					recs:=tx.Records(table.Name(),val)
 					if recs==nil || len(recs)!=1 {
 						panic("Cannot find records for key:"+val)
