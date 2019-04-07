@@ -49,6 +49,10 @@ func NewMarshaler(ormRegistry *OrmRegistry, persistency Persistency, tx ...*Tran
 	return m
 }
 
+func (m *Marshaler) OrmRegistry() *OrmRegistry {
+	return m.ormRegistry
+}
+
 func (m *Marshaler) Marshal(any interface{}) error {
 	initMarshalers()
 	if any == nil {

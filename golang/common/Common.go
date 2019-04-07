@@ -13,6 +13,3 @@ const (
 	RECORD_LEVEL   = "_LVL"
 	NO_INDEX = -9
 )
-
-type Persistency interface {
-}
