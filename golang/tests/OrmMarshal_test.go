@@ -242,8 +242,7 @@ func TestMarshalKeyPath(t *testing.T) {
 		for i2:=0;i2<3;i2++ {
 			si2:=strconv.Itoa(i2)
 			for i3:=0;i3<3;i3++ {
-				si3:=strconv.Itoa(i3)
-				expected:="[Node.SubNode2Slice=String-"+si1+"][SubNode2.SliceInSlice="+si2+"]"+si3
+				expected:="[Node.SubNode2Slice=String-"+si1+"][SubNode2.SliceInSlice="+si2+"]"
 				found:=false
 				id:=NewRecordID()
 				id.Add("Node","SubNode2Slice","String-"+si1)
@@ -258,7 +257,8 @@ func TestMarshalKeyPath(t *testing.T) {
 				}
 				for _,rec:=range nodeRecords {
 					val:=rec.Get(RECORD_ID).String()
-					if val==expected {
+					index:=int(rec.Get(RECORD_INDEX).Int())
+					if val==expected && index==i3{
 						found = true
 						break
 					}

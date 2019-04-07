@@ -89,7 +89,8 @@ func structMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Pers
 	rec := &Record{}
 	rec.SetInterface(RECORD_LEVEL, rid.Level())
 	if table.Indexes().PrimaryIndex() == nil {
-		rec.SetInterface(RECORD_ID, rid.String()+strconv.Itoa(rid.Index))
+		rec.SetInterface(RECORD_ID, rid.String())
+		rec.SetInterface(RECORD_INDEX,rid.Index)
 	}
 	subTables := make([]*Column, 0)
 	for fieldName, column := range table.Columns() {
@@ -142,7 +143,7 @@ func sliceMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Persi
 		rid.Index = i
 		v, e := marshal(value.Index(i), r, tx, pr, rid)
 		if e != nil {
-			panic("Unable To marshal!")
+			panic("Unable To marshal! "+e.Error())
 		}
 		if i != 0 {
 			sb.Append(",")
@@ -165,7 +166,7 @@ func mapMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Persist
 		rid.Index =i
 		v, e := marshal(mv, r, tx, pr, rid)
 		if e != nil {
-			panic("Unable To marshal!")
+			panic("Unable To marshal! "+e.Error())
 		}
 		if i > 0 {
 			sb.Append(",")

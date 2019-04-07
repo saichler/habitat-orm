@@ -145,6 +145,23 @@ func getStruct(column *Column, record *Record, id *RecordID, tx *Transaction) re
 	return instance
 }
 
+func createMap2Index(tableName string,recordId *RecordID, tx *Transaction, dontHaveIndex bool) map[int64]*Record {
+	if dontHaveIndex {
+		map2Index := make(map[int64]*Record)
+		id := recordId.String()
+		recs := tx.Records(tableName, id)
+		if recs == nil || len(recs) == 0 {
+			return nil
+		}
+		for _, r := range recs {
+			index := r.Get(RECORD_INDEX).Int()
+			map2Index[index] = r
+		}
+		return map2Index
+	}
+	return nil
+}
+
 func getMap(column *Column, record *Record, id *RecordID, tx *Transaction) reflect.Value {
 	value := record.Get(column.Name())
 	vString := value.String()
@@ -161,25 +178,28 @@ func getMap(column *Column, record *Record, id *RecordID, tx *Transaction) refle
 			}
 			elems:=getElements(record,column)
 			m := reflect.MakeMapWithSize(column.Type(), len(elems))
+			dontHaveIndex:=table.Indexes().PrimaryIndex() == nil
+			map2Index:=createMap2Index(table.Name(),id,tx,dontHaveIndex)
+
 			for _,v:=range elems {
 				index:=strings.Index(v,"=")
 				key:=v[0:index]
 				val:=v[index+1:]
-				if table.Indexes().PrimaryIndex() == nil {
-					recid:=id.String()
-					recs:=tx.Records(table.Name(),recid)
-					if recs==nil || len(recs)==0 {
-						continue
+				if dontHaveIndex {
+					if map2Index==nil {
+						return reflect.ValueOf(nil)
 					}
-					for _,r:=range recs {
-						subRecID:=r.Get(RECORD_ID).String()
-						if subRecID==recid+val {
-							iv,_:=strconv.Atoi(val)
-							id.Index=iv
-							sval:=getStruct(column, r, id, tx)
-							m.SetMapIndex(utils.FromString(key,column.Type().Key()),sval)
-						}
+					i,e:=strconv.Atoi(val)
+					if e!=nil {
+						panic("Index value in map is not int: "+e.Error())
 					}
+					r:=map2Index[int64(i)]
+					if r==nil {
+						panic("Cannot find Map Index :"+val)
+					}
+					id.Index=i
+					sval:=getStruct(column, r, id, tx)
+					m.SetMapIndex(utils.FromString(key,column.Type().Key()),sval)
 				} else {
 					recs:=tx.Records(table.Name(),val)
 					if recs==nil || len(recs)!=1 {
