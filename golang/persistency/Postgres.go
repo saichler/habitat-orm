@@ -20,6 +20,12 @@ type Postgres struct {
 	db *sql.DB
 }
 
+func NewPostgresPersistency2(db *sql.DB) *Postgres {
+	p:=&Postgres{}
+	p.db = db
+	return p
+}
+
 func NewPostgresPersistency1(host string, port int, user,pass,dbname,schema string) *Postgres {
 	p:=&Postgres{}
 	p.host = host
@@ -144,7 +150,6 @@ func (p *Postgres) createSchema(r *OrmRegistry) {
 		}
 	}
 }
-
 
 func (p *Postgres) DB() *sql.DB {
 	return p.db
