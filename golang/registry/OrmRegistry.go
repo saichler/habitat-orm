@@ -41,3 +41,7 @@ func (o *OrmRegistry) Table(name string) *Table {
 	}
 	return o.tables[name]
 }
+
+func (o *OrmRegistry) Tables() map[string]*Table {
+	return o.tables
+}
