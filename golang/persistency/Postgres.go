@@ -18,6 +18,7 @@ type Postgres struct {
 	dbname string
 	schema string
 	db *sql.DB
+	tx *sql.Tx
 }
 
 func NewPostgresPersistency2(db *sql.DB) *Postgres {
@@ -149,6 +150,7 @@ func (p *Postgres) createSchema(r *OrmRegistry) {
 			panic("Failed to execute sql:"+createSql.String()+" error="+err.Error())
 		}
 	}
+	p.tx,err = p.db.Begin()
 }
 
 func (p *Postgres) DB() *sql.DB {
@@ -157,4 +159,8 @@ func (p *Postgres) DB() *sql.DB {
 
 func (p *Postgres) Schema() string {
 	return p.schema
+}
+
+func (p *Postgres) TableName(table *Table) string {
+	return p.schema+"."+table.Name()
 }

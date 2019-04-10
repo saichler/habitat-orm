@@ -111,3 +111,14 @@ func (index *Index) Columns() []*Column {
 func (index *Index) Table() *Table {
 	return index.table
 }
+
+func (index *Index) CriteriaStatement() string {
+	buff:=NewStringBuilder("")
+	for i,_:=range index.columns {
+		if i>0 {
+			buff.Append(" AND ")
+		}
+		buff.Append("#").Append(strconv.Itoa(i+1))
+	}
+	return buff.String()
+}

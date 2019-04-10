@@ -4,6 +4,10 @@ type Transaction struct {
 	tableData map[string]map[string][]*Record
 }
 
+func (tx *Transaction) All() map[string]map[string][]*Record {
+	return tx.tableData
+}
+
 func (tx *Transaction) AddRecord(record *Record, tableName, id string) {
 	if tx.tableData == nil {
 		tx.tableData = make(map[string]map[string][]*Record)

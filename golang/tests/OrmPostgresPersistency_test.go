@@ -30,3 +30,12 @@ func TestOrmPostgresinit(t *testing.T) {
 	checkTable(p,"SubNode5",t)
 	checkTable(p,"SubNode6",t)
 }
+
+func TestOrmPostgresMarshal(t *testing.T) {
+	p:=NewPostgresPersistency1("",0,"","","","")
+	tx:=&Transaction{}
+	mr:=initMarshaler(5,tx)
+	r:=mr.OrmRegistry()
+	p.Init(r)
+	p.Marshal(r,tx)
+}

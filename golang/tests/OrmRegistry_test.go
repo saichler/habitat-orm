@@ -34,7 +34,7 @@ func TestOrmRegistrySizeTag(t *testing.T) {
 	registry := OrmRegistry{}
 	registry.Register(Node{})
 	nodeTable := registry.Table("Node")
-	if nodeTable.Columns()["String"].MetaData().Size() != 5 {
+	if nodeTable.Columns()["String7"].MetaData().Size() != 5 {
 		t.Fail()
 		Error("Size tag does not work")
 		return

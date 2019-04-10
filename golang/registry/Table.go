@@ -49,3 +49,11 @@ func (t *Table) NewInstance() reflect.Value {
 func (t *Table) OrmRegistry() *OrmRegistry {
 	return t.ormRegistry
 }
+
+func (t *Table) IgnoreColumn(name string) bool {
+	column:=t.columns[name]
+	if column==nil {
+		return false
+	}
+	return column.metaData.Ignore()
+}
