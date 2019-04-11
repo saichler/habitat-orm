@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"github.com/saichler/habitat-orm/golang/common"
 	. "github.com/saichler/habitat-orm/golang/persistency"
 	. "github.com/saichler/habitat-orm/golang/transaction"
 	. "github.com/saichler/utils/golang"
@@ -38,4 +39,14 @@ func TestOrmPostgresMarshal(t *testing.T) {
 	r:=mr.OrmRegistry()
 	p.Init(r)
 	p.Marshal(r,tx)
+}
+
+func TestOrmPostgresUnmarshalMarshal(t *testing.T) {
+	p:=NewPostgresPersistency1("",0,"","","","")
+	tx:=&Transaction{}
+	mr:=initMarshaler(5,tx)
+	r:=mr.OrmRegistry()
+	p.Init(r)
+	q:=common.NewQuery("",true)
+	p.Unmarshal(q,r)
 }
