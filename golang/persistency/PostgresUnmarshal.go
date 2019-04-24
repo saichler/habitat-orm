@@ -1,7 +1,6 @@
 package persistency
 
 import (
-	"fmt"
 	. "github.com/saichler/habitat-orm/golang/common"
 	. "github.com/saichler/habitat-orm/golang/registry"
 	. "github.com/saichler/habitat-orm/golang/transaction"
@@ -42,13 +41,31 @@ func (p *Postgres) Unmarshal(q *Query,r *OrmRegistry) (*Transaction,error) {
 		value:=""
 		arguments[i] = reflect.ValueOf(&value)
 	}
-	for ;rows.Next(); {
 
+	for ;rows.Next(); {
 		fnc.Call(arguments)
 		record:=&Record{}
+		subrecords:=make(map[string]string)
 		for i,columnName:=range argNames {
-			fmt.Println(columnName+"="+arguments[i].Elem().String())
-			record.SetInterface(columnName,arguments[i])
+			var colValue reflect.Value
+			stringValue:=arguments[i].Elem().String()
+
+			if columnName==RECORD_LEVEL || columnName==RECORD_INDEX {
+				colValue = FromString(stringValue,reflect.ValueOf(int(0)).Type())
+			} else if columnName==RECORD_ID {
+				colValue = arguments[i].Elem()
+			} else {
+				col,err:=table.Column(columnName)
+				if err!=nil {
+					panic(err)
+				}
+				if col.MetaData().ColumnTableName()!="" {
+					subrecords[columnName]=stringValue
+					continue
+				}
+				colValue = FromString(stringValue,col.Type())
+			}
+			record.SetInterface(columnName,colValue)
 		}
 		tx.AddRecord(record,table.Name(),"")
 	}
