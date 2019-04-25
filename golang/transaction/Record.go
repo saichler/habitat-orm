@@ -2,7 +2,7 @@ package transaction
 
 import (
 	. "github.com/saichler/habitat-orm/golang/registry"
-	"github.com/saichler/utils/golang"
+	. "github.com/saichler/utils/golang"
 	"reflect"
 )
 
@@ -27,10 +27,10 @@ func (rec *Record) SetInterface(key string, any interface{}) {
 }
 
 func (rec *Record) PrimaryIndex(pi *Index) string {
-	result := utils.NewStringBuilder("")
+	result := NewStringBuilder("")
 	for _, column := range pi.Columns() {
 		val := rec.data[column.Name()]
-		sv := utils.ToString(val)
+		sv := ToString(val)
 		result.Append(sv)
 	}
 	return result.String()

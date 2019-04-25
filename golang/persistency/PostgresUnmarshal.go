@@ -8,10 +8,22 @@ import (
 	"reflect"
 )
 
-func (p *Postgres) Unmarshal(q *Query,r *OrmRegistry) (*Transaction,error) {
-	tx:=&Transaction{}
-	table:=r.Table(q.TableName())
+func (p *Postgres) Unmarshal(q *Query,r *OrmRegistry,tx *Transaction) error {
+	return p.unmarshal(q.TableName(),r,tx,make(map[string]string))
+}
+
+func (p *Postgres) unmarshal(tableName string,r *OrmRegistry,tx *Transaction, loaded map[string]string) error {
+
+	_,o:= loaded[tableName]
+	if o {
+		return nil
+	}
+	loaded[tableName]=""
+
+	table:=r.Table(tableName)
+
 	st:=CreateSelectStatement(p.TableName(table),"")
+
 	argNames:=make([]string,1)
 	st.AddColumn(RECORD_LEVEL,"")
 	argNames[0]=RECORD_LEVEL
@@ -32,7 +44,7 @@ func (p *Postgres) Unmarshal(q *Query,r *OrmRegistry) (*Transaction,error) {
 	rows,err:=st.Query(p.tx)
 	if err!=nil {
 		Error(err)
-		return nil,err
+		return err
 	}
 
 	fnc := reflect.ValueOf(rows).MethodByName("Scan")
@@ -42,14 +54,14 @@ func (p *Postgres) Unmarshal(q *Query,r *OrmRegistry) (*Transaction,error) {
 		arguments[i] = reflect.ValueOf(&value)
 	}
 
+	subTables:=make(map[string]string)
+
 	for ;rows.Next(); {
 		fnc.Call(arguments)
 		record:=&Record{}
-		subrecords:=make(map[string]string)
 		for i,columnName:=range argNames {
 			var colValue reflect.Value
 			stringValue:=arguments[i].Elem().String()
-
 			if columnName==RECORD_LEVEL || columnName==RECORD_INDEX {
 				colValue = FromString(stringValue,reflect.ValueOf(int(0)).Type())
 			} else if columnName==RECORD_ID {
@@ -60,14 +72,29 @@ func (p *Postgres) Unmarshal(q *Query,r *OrmRegistry) (*Transaction,error) {
 					panic(err)
 				}
 				if col.MetaData().ColumnTableName()!="" {
-					subrecords[columnName]=stringValue
-					continue
+					subTables[col.MetaData().ColumnTableName()]=""
+					colValue = arguments[i].Elem()
+				} else if col.Type().Kind()==reflect.Map || col.Type().Kind()==reflect.Slice {
+					colValue = arguments[i].Elem()
+				} else {
+					colValue = FromString(stringValue, col.Type())
 				}
-				colValue = FromString(stringValue,col.Type())
 			}
-			record.SetInterface(columnName,colValue)
+			record.SetValue(columnName,colValue)
 		}
-		tx.AddRecord(record,table.Name(),"")
+
+		recordID:=""
+		if table.Indexes().PrimaryIndex()!=nil {
+			recordID = record.PrimaryIndex(table.Indexes().PrimaryIndex())
+		} else {
+			recordID = record.Get(RECORD_ID).String()
+		}
+		tx.AddRecord(record,table.Name(),recordID)
 	}
-	return nil,nil
+
+	for tn,_:=range subTables {
+		p.unmarshal(tn,r,tx,loaded)
+	}
+
+	return nil
 }

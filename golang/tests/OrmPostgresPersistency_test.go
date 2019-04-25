@@ -1,10 +1,13 @@
 package tests
 
 import (
-	"github.com/saichler/habitat-orm/golang/common"
+	. "github.com/saichler/habitat-orm/golang/common"
+	. "github.com/saichler/habitat-orm/golang/marshal"
 	. "github.com/saichler/habitat-orm/golang/persistency"
 	. "github.com/saichler/habitat-orm/golang/transaction"
 	. "github.com/saichler/utils/golang"
+	. "github.com/saichler/utils/golang/tests"
+	"strconv"
 	"testing"
 )
 
@@ -47,6 +50,39 @@ func TestOrmPostgresUnmarshalMarshal(t *testing.T) {
 	mr:=initMarshaler(5,tx)
 	r:=mr.OrmRegistry()
 	p.Init(r)
-	q:=common.NewQuery("",true)
-	p.Unmarshal(q,r)
+	q:=NewQuery("",true)
+	tx=&Transaction{}
+	p.Unmarshal(q,r,tx)
+}
+
+func TestPosgresUnMarshalPtrNoKey(t *testing.T) {
+	p:=NewPostgresPersistency1("",0,"","","","")
+	tx:=&Transaction{}
+	mr:=initMarshaler(5,tx)
+	r:=mr.OrmRegistry()
+	p.Init(r)
+	q:=NewQuery("",true)
+	tx=&Transaction{}
+	p.Unmarshal(q,r,tx)
+
+	m:=NewMarshaler(r,nil,tx)
+
+	q=NewQuery("Node",true)
+	instances:=m.UnMarshal(q)
+	if len(instances)!=size {
+		t.Fail()
+		Error("Expected:"+strconv.Itoa(size)+" but got "+strconv.Itoa(len(instances)))
+	}
+	for i:=0;i<size;i++ {
+		for _,n:=range instances {
+			node:=n.(*Node)
+			if node.PtrNoKey==nil {
+				t.Fail()
+				Error("Expected ptr no key to exist")
+			} else if node.PtrNoKey.String=="" {
+				t.Fail()
+				Error("Expected ptr no key name not to be blank ")
+			}
+		}
+	}
 }

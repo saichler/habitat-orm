@@ -92,7 +92,7 @@ func getPtr(column *Column, record *Record, id *RecordID, tx *Transaction) refle
 			return getStruct(column, subRecords[0], id, tx)
 		}
 		key := record.Get(column.Name()).String()
-		if key == "" {
+		if key == "" || key=="<invalid Value>"{
 			return reflect.ValueOf(nil)
 		}
 		subRecords := tx.Records(column.MetaData().ColumnTableName(), key)
