@@ -37,12 +37,12 @@ func (t *Table) Columns() map[string]*Column {
 	return t.columns
 }
 
-func (t *Table) Column(name string) (*Column,error) {
-	column:=t.columns[name]
-	if column==nil {
-		return nil,errors.New("Column "+name+" does not exist in table "+t.Name())
+func (t *Table) Column(name string) (*Column, error) {
+	column := t.columns[name]
+	if column == nil {
+		return nil, errors.New("Column " + name + " does not exist in table " + t.Name())
 	}
-	return column,nil
+	return column, nil
 }
 
 func (t *Table) Indexes() *Indexes {
@@ -62,8 +62,8 @@ func (t *Table) OrmRegistry() *OrmRegistry {
 }
 
 func (t *Table) IgnoreColumn(name string) bool {
-	column:=t.columns[name]
-	if column==nil {
+	column := t.columns[name]
+	if column == nil {
 		return false
 	}
 	return column.metaData.Ignore()

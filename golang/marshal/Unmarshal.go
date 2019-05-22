@@ -33,7 +33,7 @@ func initSetters() {
 	}
 }
 
-func (m *Marshaler) UnMarshal(ormQuery *Query) []interface{} {
+func (m *Marshaler) UnMarshal(ormQuery *OrmQuery) []interface{} {
 	initSetters()
 	instances := unmarshal(ormQuery, m.tx, m.ormRegistry, NewRecordID())
 	result := make([]interface{}, len(instances))
@@ -43,14 +43,15 @@ func (m *Marshaler) UnMarshal(ormQuery *Query) []interface{} {
 	return result
 }
 
-func unmarshal(query *Query, tx *Transaction, ormRegistry *OrmRegistry, id *RecordID) []reflect.Value {
-	table := ormRegistry.Table(query.TableName())
+func unmarshal(query *OrmQuery, tx *Transaction, ormRegistry *OrmRegistry, id *RecordID) []reflect.Value {
+	tableName := "node"
+	table := query.Tables()[tableName]
 	if table == nil {
-		panic("Unknown table " + query.TableName())
+		panic("Unknown table " + table.Name())
 	}
 	result := make([]reflect.Value, 0)
 
-	records := tx.AllRecords(query.TableName())
+	records := tx.AllRecords(table.Name())
 	for _, record := range records {
 		if record.Get(RECORD_LEVEL).Int() == 0 || !query.OnlyTopLevel() {
 			instance := table.NewInstance()
@@ -92,7 +93,7 @@ func getPtr(column *Column, record *Record, id *RecordID, tx *Transaction) refle
 			return getStruct(column, subRecords[0], id, tx)
 		}
 		key := record.Get(column.Name()).String()
-		if key == "" || key=="<invalid Value>"{
+		if key == "" || key == "<invalid Value>" {
 			return reflect.ValueOf(nil)
 		}
 		subRecords := tx.Records(column.MetaData().ColumnTableName(), key)
@@ -145,7 +146,7 @@ func getStruct(column *Column, record *Record, id *RecordID, tx *Transaction) re
 	return instance
 }
 
-func createMap2Index(tableName string,recordId *RecordID, tx *Transaction, dontHaveIndex bool) map[int64]*Record {
+func createMap2Index(tableName string, recordId *RecordID, tx *Transaction, dontHaveIndex bool) map[int64]*Record {
 	if dontHaveIndex {
 		map2Index := make(map[int64]*Record)
 		id := recordId.String()
@@ -166,47 +167,47 @@ func getMap(column *Column, record *Record, id *RecordID, tx *Transaction) refle
 	value := record.Get(column.Name())
 	vString := value.String()
 	if value.IsValid() {
-		if vString=="" {
+		if vString == "" {
 			return reflect.ValueOf(nil)
 		}
 		if column.MetaData().ColumnTableName() == "" {
 			return utils.FromString(vString, column.Type())
 		} else {
-			table:=column.Table().OrmRegistry().Table(column.MetaData().ColumnTableName())
-			if table==nil {
-				panic("No Table was found with name:"+column.MetaData().ColumnTableName())
+			table := column.Table().OrmRegistry().Table(column.MetaData().ColumnTableName())
+			if table == nil {
+				panic("No Table was found with name:" + column.MetaData().ColumnTableName())
 			}
-			elems:=getElements(record,column)
+			elems := getElements(record, column)
 			m := reflect.MakeMapWithSize(column.Type(), len(elems))
-			dontHaveIndex:=table.Indexes().PrimaryIndex() == nil
-			map2Index:=createMap2Index(table.Name(),id,tx,dontHaveIndex)
+			dontHaveIndex := table.Indexes().PrimaryIndex() == nil
+			map2Index := createMap2Index(table.Name(), id, tx, dontHaveIndex)
 
-			for _,v:=range elems {
-				index:=strings.Index(v,"=")
-				key:=v[0:index]
-				val:=v[index+1:]
+			for _, v := range elems {
+				index := strings.Index(v, "=")
+				key := v[0:index]
+				val := v[index+1:]
 				if dontHaveIndex {
-					if map2Index==nil {
+					if map2Index == nil {
 						return reflect.ValueOf(nil)
 					}
-					i,e:=strconv.Atoi(val)
-					if e!=nil {
-						panic("Index value in map is not int: "+e.Error())
+					i, e := strconv.Atoi(val)
+					if e != nil {
+						panic("Index value in map is not int: " + e.Error())
 					}
-					r:=map2Index[int64(i)]
-					if r==nil {
-						panic("Cannot find Map Index :"+val)
+					r := map2Index[int64(i)]
+					if r == nil {
+						panic("Cannot find Map Index :" + val)
 					}
-					id.Index=i
-					sval:=getStruct(column, r, id, tx)
-					m.SetMapIndex(utils.FromString(key,column.Type().Key()),sval)
+					id.Index = i
+					sval := getStruct(column, r, id, tx)
+					m.SetMapIndex(utils.FromString(key, column.Type().Key()), sval)
 				} else {
-					recs:=tx.Records(table.Name(),val)
-					if recs==nil || len(recs)!=1 {
-						panic("Cannot find records for key:"+val)
+					recs := tx.Records(table.Name(), val)
+					if recs == nil || len(recs) != 1 {
+						panic("Cannot find records for key:" + val)
 					} else {
-						sval:=getStruct(column, recs[0], NewRecordID(), tx)
-						m.SetMapIndex(utils.FromString(key,column.Type().Key()),sval)
+						sval := getStruct(column, recs[0], NewRecordID(), tx)
+						m.SetMapIndex(utils.FromString(key, column.Type().Key()), sval)
 					}
 				}
 			}
@@ -226,12 +227,12 @@ func getSlice(column *Column, record *Record, id *RecordID, tx *Transaction) ref
 		if column.MetaData().ColumnTableName() == "" {
 			return utils.FromString(vString, column.Type())
 		} else {
-			table:=column.Table().OrmRegistry().Table(column.MetaData().ColumnTableName())
-			if table==nil {
-				panic("No Table was found with name:"+column.MetaData().ColumnTableName())
+			table := column.Table().OrmRegistry().Table(column.MetaData().ColumnTableName())
+			if table == nil {
+				panic("No Table was found with name:" + column.MetaData().ColumnTableName())
 			}
-			if table.Indexes().PrimaryIndex()!=nil {
-				keys:=getElements(record,column)
+			if table.Indexes().PrimaryIndex() != nil {
+				keys := getElements(record, column)
 				newSlice := reflect.MakeSlice(column.Type(), len(keys), len(keys))
 				for i, key := range keys {
 					rec := tx.Records(table.Name(), key)[0]
@@ -258,7 +259,7 @@ func getSlice(column *Column, record *Record, id *RecordID, tx *Transaction) ref
 	return reflect.ValueOf(nil)
 }
 
-func getElements(record *Record,column *Column) []string {
+func getElements(record *Record, column *Column) []string {
 	elementsString := record.Get(column.Name()).String()
 	elementsString = elementsString[1 : len(elementsString)-1]
 	elems := strings.Split(elementsString, ",")
