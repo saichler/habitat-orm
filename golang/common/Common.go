@@ -11,5 +11,5 @@ const (
 	RECORD_ID      = "_RID"
 	RECORD_INDEX   = "_RINDEX"
 	RECORD_LEVEL   = "_LVL"
-	NO_INDEX = -9
+	NO_INDEX       = -9
 )

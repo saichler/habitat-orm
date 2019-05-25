@@ -1,9 +1,9 @@
-package common
+package query
 
 import "strings"
 
 type Query struct {
-	sql  string
+	query  string
 	tables []string
 	column []string
 	where  *Expression
@@ -27,15 +27,15 @@ func (q *Query) Columns() []string {
 	return q.column
 }
 
-func NewQuery(sql string) *Query {
+func NewQuery(query string) (*Query, error) {
 	cwql := &Query{}
-	cwql.sql = sql
-	cwql.init()
-	return cwql
+	cwql.query = query
+	e := cwql.init()
+	return cwql, e
 }
 
 func (q *Query) split() (string, string, string) {
-	sql := strings.TrimSpace(strings.ToLower(q.sql))
+	sql := strings.TrimSpace(strings.ToLower(q.query))
 	a := strings.Index(sql, Select)
 	if a == -1 {
 		return "", "", ""
@@ -55,7 +55,7 @@ func (q *Query) split() (string, string, string) {
 	return s, f, w
 }
 
-func (q *Query) init() {
+func (q *Query) init() error {
 	s, f, w := q.split()
 	if s != "" {
 		columns := strings.Split(s, ",")
@@ -72,6 +72,11 @@ func (q *Query) init() {
 		}
 	}
 	if w != "" {
-		q.where = parseExpression(w)
+		where, e := parseExpression(w)
+		if e != nil {
+			return e
+		}
+		q.where = where
 	}
+	return nil
 }

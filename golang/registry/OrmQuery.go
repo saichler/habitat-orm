@@ -2,7 +2,7 @@ package registry
 
 import (
 	"errors"
-	. "github.com/saichler/habitat-orm/golang/common"
+	. "github.com/saichler/habitat-orm/golang/query"
 	"strings"
 )
 
@@ -79,7 +79,7 @@ func (ormQuery *OrmQuery) initColumn(columnName string) error {
 
 func (o *OrmRegistry) NewOrmQuery(sql string) (*OrmQuery, error) {
 
-	query := NewQuery(sql)
+	query,_ := NewQuery(sql)
 	ormQuery := &OrmQuery{}
 	ormQuery.tables = make(map[string]*Table)
 	ormQuery.columns = make(map[string]*Column)

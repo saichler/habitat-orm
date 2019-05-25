@@ -11,13 +11,13 @@ type RecordID struct {
 }
 
 type RecordIDEntry struct {
-	tableName string
+	tableName  string
 	columnName string
-	parentKey string
+	parentKey  string
 }
 
 func (rid *RecordIDEntry) String() string {
-	result:=utils.NewStringBuilder("[")
+	result := utils.NewStringBuilder("[")
 	result.Append(rid.tableName).Append(".")
 	result.Append(rid.columnName).Append("=")
 	result.Append(rid.parentKey)
@@ -26,17 +26,17 @@ func (rid *RecordIDEntry) String() string {
 }
 
 func NewRecordID() *RecordID {
-	rid:=&RecordID{}
-	rid.entries = make([]*RecordIDEntry,0)
+	rid := &RecordID{}
+	rid.entries = make([]*RecordIDEntry, 0)
 	rid.location = -1
 	return rid
 }
 
-func (rid *RecordID) Add(tableName,columnName,parentKey string) {
-	if rid.entries==nil {
+func (rid *RecordID) Add(tableName, columnName, parentKey string) {
+	if rid.entries == nil {
 		panic("RecordID was not created with NewRecordID method.")
 	}
-	ride :=&RecordIDEntry{}
+	ride := &RecordIDEntry{}
 	ride.tableName = tableName
 	ride.columnName = columnName
 	ride.parentKey = parentKey
@@ -46,17 +46,17 @@ func (rid *RecordID) Add(tableName,columnName,parentKey string) {
 }
 
 func (rid *RecordID) SetParentKey(parentKey string) {
-	rid.entries[rid.location].parentKey=parentKey
+	rid.entries[rid.location].parentKey = parentKey
 }
 
-func (rid *RecordID) Del(){
+func (rid *RecordID) Del() {
 	rid.entries = rid.entries[0:rid.location]
 	rid.location--
 }
 
 func (rid *RecordID) String() string {
-	sb:=utils.NewStringBuilder("")
-	for _,s:=range rid.entries {
+	sb := utils.NewStringBuilder("")
+	for _, s := range rid.entries {
 		sb.Append(s.String())
 	}
 	return sb.String()
