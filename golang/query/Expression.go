@@ -23,12 +23,12 @@ func (expr *Expression) String() string {
 	if expr.child != nil {
 		buff.WriteString(expr.child.String())
 	}
+	if expr.condition == nil {
+		buff.WriteString(")")
+	}
 	if expr.next != nil {
 		buff.WriteString(string(expr.op))
 		buff.WriteString(expr.next.String())
-	}
-	if expr.condition == nil {
-		buff.WriteString(")")
 	}
 	return buff.String()
 }
