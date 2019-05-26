@@ -76,7 +76,6 @@ func NewCondition(ws string) (*Condition, error) {
 
 	cmpr, e := NewCompare(ws[0:loc])
 	if e != nil {
-		panic(ws)
 		return nil, e
 	}
 
