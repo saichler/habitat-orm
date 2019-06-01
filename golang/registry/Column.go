@@ -2,6 +2,7 @@ package registry
 
 import (
 	. "github.com/saichler/habitat-orm/golang/common"
+	. "github.com/saichler/habitat-orm/golang/registry/schema"
 	. "github.com/saichler/utils/golang"
 	"reflect"
 	"strconv"
@@ -18,12 +19,13 @@ func (c *Column) MetaData() *ColumnMetaData {
 	return c.metaData
 }
 
-func (c *Column) inspect() {
+func (c *Column) inspect(path *TablePath) {
 	c.parseMetaData()
 	if isStruct(c.field.Type) {
 		strct := getStruct(c.field.Type)
 		c.metaData.columnTableName = strct.Name()
-		c.table.ormRegistry.register(strct)
+		tp := c.table.ormRegistry.schema.RegiaterTablePath(c.Name(), strct, path)
+		c.table.ormRegistry.register(strct, tp)
 	}
 }
 

@@ -16,6 +16,7 @@ func TestUnMarshalCountOnlyTopLevel(t *testing.T) {
 	if e != nil {
 		Error(e)
 		t.Fail()
+		return
 	}
 	instances := m.UnMarshal(q)
 	if len(instances) != size {

@@ -2,6 +2,7 @@ package registry
 
 import (
 	"errors"
+	. "github.com/saichler/habitat-orm/golang/registry/schema"
 	"reflect"
 )
 
@@ -12,7 +13,7 @@ type Table struct {
 	indexes     *Indexes
 }
 
-func (t *Table) inspect() {
+func (t *Table) inspect(path *TablePath) {
 	if t.columns == nil {
 		t.columns = make(map[string]*Column)
 	}
@@ -27,7 +28,7 @@ func (t *Table) inspect() {
 			c.field = field
 			c.table = t
 			t.columns[field.Name] = c
-			c.inspect()
+			c.inspect(path)
 			t.indexes.AddColumn(c)
 		}
 	}

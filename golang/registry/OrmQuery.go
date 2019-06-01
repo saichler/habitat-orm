@@ -1,22 +1,58 @@
 package registry
 
 import (
+	"bytes"
 	"errors"
 	. "github.com/saichler/habitat-orm/golang/query"
+	. "github.com/saichler/habitat-orm/golang/registry/expression"
+	. "github.com/saichler/habitat-orm/golang/registry/schema"
+	"reflect"
 	"strings"
 )
 
 type OrmQuery struct {
-	tables  map[string]*Table
-	columns map[string]*Column
+	tables  map[string]*TablePath
+	columns map[string]*ColumnPath
 	where   *OrmExpression
 }
 
-type OrmExpression struct {
+func (ormQuery *OrmQuery) String() string {
+	buff := bytes.Buffer{}
+	buff.WriteString("Select ")
+	first := true
+
+	for _, column := range ormQuery.columns {
+		if !first {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(column.Key())
+		first = false
+	}
+
+	buff.WriteString(" From ")
+
+	first = true
+	for _, table := range ormQuery.tables {
+		if !first {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(table.Key())
+		first = false
+	}
+
+	if ormQuery.where != nil {
+		buff.WriteString(" Where ")
+		buff.WriteString(ormQuery.where.String())
+	}
+	return buff.String()
 }
 
-func (ormQuery *OrmQuery) Tables() map[string]*Table {
+func (ormQuery *OrmQuery) Tables() map[string]*TablePath {
 	return ormQuery.tables
+}
+
+func (OrmQuery *OrmQuery) Columns() map[string]*ColumnPath {
+	return OrmQuery.columns
 }
 
 func (ormQuery *OrmQuery) OnlyTopLevel() bool {
@@ -28,72 +64,96 @@ func (ormQuery *OrmQuery) initTables(o *OrmRegistry, query *Query) error {
 		found := false
 		for name, table := range o.tables {
 			if strings.ToLower(name) == tableName {
-				ormQuery.tables[tableName] = table
+				ormQuery.tables[tableName] = o.Schema().TablePaths()[table.Name()]
 				found = true
 				break
 			}
 		}
 		if !found {
-			return errors.New("Could not find Struct " + tableName + " in Orm Registry.")
+			return errors.New("Could not find Table " + tableName + " in Orm Registry.")
 		}
 	}
 	return nil
 }
 
-func (ormQuery *OrmQuery) columnExistInTable(table *Table, columnName string) bool {
-	for name, column := range table.columns {
-		if strings.ToLower(name) == columnName {
-			ormQuery.columns[columnName] = column
-			return true
-		} else if columnName=="*" {
-			ormQuery.columns[columnName] = column
+func (ormQuery *OrmQuery) initColumns(o *OrmRegistry, query *Query) error {
+	mainTable, e := ormQuery.MainTable()
+	if e != nil {
+		return e
+	}
+	for _, col := range query.Columns() {
+		cp := o.schema.CreateColumnPath(mainTable, col)
+		if cp == nil {
+			return errors.New("Cannot find query field: " + col)
 		}
+		ormQuery.columns[col] = cp
 	}
-	if columnName=="*" {
-		return true
-	}
-	return false
-}
-
-func (ormQuery *OrmQuery) initColumn(columnName string) error {
-	index := strings.Index(columnName, ".")
-	var table *Table
-	if index != -1 {
-		tableName := strings.TrimSpace(columnName[0:index])
-		table = ormQuery.tables[tableName]
-		columnName = strings.TrimSpace(columnName[index+1:])
-	}
-
-	if table != nil && !ormQuery.columnExistInTable(table, columnName) {
-		return errors.New("Column " + columnName + " does not exist in table " + table.Name())
-	}
-
-	for _, table := range ormQuery.tables {
-		if ormQuery.columnExistInTable(table, columnName) {
-			return nil
-		}
-	}
-
-	return errors.New("Cannot find column " + columnName + " in any of the query tables.")
+	return nil
 }
 
 func (o *OrmRegistry) NewOrmQuery(sql string) (*OrmQuery, error) {
 
-	query,_ := NewQuery(sql)
-	ormQuery := &OrmQuery{}
-	ormQuery.tables = make(map[string]*Table)
-	ormQuery.columns = make(map[string]*Column)
-
-	err := ormQuery.initTables(o, query)
+	query, err := NewQuery(sql)
 	if err != nil {
 		return nil, err
 	}
-	for _, c := range query.Columns() {
-		err = ormQuery.initColumn(c)
+	ormQuery := &OrmQuery{}
+	ormQuery.tables = make(map[string]*TablePath)
+	ormQuery.columns = make(map[string]*ColumnPath)
+
+	err = ormQuery.initTables(o, query)
+	if err != nil {
+		return nil, err
+	}
+
+	err = ormQuery.initColumns(o, query)
+	if err != nil {
+		return nil, err
+	}
+
+	mainTable, err := ormQuery.MainTable()
+	if err != nil {
+		return nil, err
+	}
+
+	if query.Where()!=nil {
+		expr, err := CreateExpression(o.schema, mainTable, query.Where())
 		if err != nil {
 			return nil, err
 		}
+		ormQuery.where = expr
 	}
 
 	return ormQuery, nil
+}
+
+func (ormQuery *OrmQuery) MainTable() (*TablePath, error) {
+	for _, t := range ormQuery.tables {
+		return t, nil
+	}
+	return nil, errors.New("No tables in query")
+}
+
+func (ormQuery *OrmQuery) Match(any interface{}) (bool, error) {
+	val := reflect.ValueOf(any)
+	return ormQuery.match(val)
+}
+
+func (ormQuery *OrmQuery) match(value reflect.Value) (bool, error) {
+	if !value.IsValid() {
+		return false, nil
+	}
+	if value.Kind() == reflect.Ptr {
+		if value.IsNil() {
+			return false, nil
+		} else {
+			value = value.Elem()
+		}
+	}
+	tableName := strings.ToLower(value.Type().Name())
+	table := ormQuery.tables[tableName]
+	if table == nil {
+		return false, nil
+	}
+	return ormQuery.where.Match(value)
 }

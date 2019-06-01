@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	BasicQuery = "Select * from Node"
+	BasicQuery = "Select String from Node"
 )
 
 func checkTable(p *Postgres, n string, t *testing.T) {

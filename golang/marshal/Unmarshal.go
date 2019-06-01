@@ -44,13 +44,12 @@ func (m *Marshaler) UnMarshal(ormQuery *OrmQuery) []interface{} {
 }
 
 func unmarshal(query *OrmQuery, tx *Transaction, ormRegistry *OrmRegistry, id *RecordID) []reflect.Value {
-	tableName := "node"
-	table := query.Tables()[tableName]
-	if table == nil {
-		panic("Unknown table " + table.Name())
-	}
 	result := make([]reflect.Value, 0)
-
+	mainTable,e:=query.MainTable()
+	if e!=nil {
+		return nil
+	}
+	table:=ormRegistry.Table(mainTable.Type().Name())
 	records := tx.AllRecords(table.Name())
 	for _, record := range records {
 		if record.Get(RECORD_LEVEL).Int() == 0 || !query.OnlyTopLevel() {

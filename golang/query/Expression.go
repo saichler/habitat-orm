@@ -13,6 +13,22 @@ type Expression struct {
 	child     *Expression
 }
 
+func (expr *Expression) Condition() *Condition {
+	return expr.condition
+}
+
+func (expr *Expression) Operation() ConditionOperation {
+	return expr.op
+}
+
+func (expr *Expression) Next() *Expression {
+	return expr.next
+}
+
+func (expr *Expression) Child() *Expression {
+	return expr.child
+}
+
 func (expr *Expression) String() string {
 	buff := bytes.Buffer{}
 	if expr.condition != nil {
