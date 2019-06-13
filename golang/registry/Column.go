@@ -2,7 +2,7 @@ package registry
 
 import (
 	. "github.com/saichler/habitat-orm/golang/common"
-	. "github.com/saichler/habitat-orm/golang/registry/schema"
+	. "github.com/saichler/hql-schema/golang"
 	. "github.com/saichler/utils/golang"
 	"reflect"
 	"strconv"
@@ -19,13 +19,13 @@ func (c *Column) MetaData() *ColumnMetaData {
 	return c.metaData
 }
 
-func (c *Column) inspect(path *TablePath) {
+func (c *Column) inspect(parent *SchemaNode) {
 	c.parseMetaData()
 	if isStruct(c.field.Type) {
 		strct := getStruct(c.field.Type)
 		c.metaData.columnTableName = strct.Name()
-		tp := c.table.ormRegistry.schema.RegiaterTablePath(c.Name(), strct, path)
-		c.table.ormRegistry.register(strct, tp)
+		schemaNode := c.table.ormRegistry.schema.RegisterNode(c.Name(), parent, strct)
+		c.table.ormRegistry.register(strct, schemaNode)
 	}
 }
 

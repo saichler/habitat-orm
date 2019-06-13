@@ -4,6 +4,7 @@ import (
 	. "github.com/saichler/habitat-orm/golang/common"
 	. "github.com/saichler/habitat-orm/golang/registry"
 	. "github.com/saichler/habitat-orm/golang/transaction"
+	. "github.com/saichler/hql-interpreter/golang"
 	"github.com/saichler/utils/golang"
 	"reflect"
 	"strconv"
@@ -33,9 +34,9 @@ func initSetters() {
 	}
 }
 
-func (m *Marshaler) UnMarshal(ormQuery *OrmQuery) []interface{} {
+func (m *Marshaler) UnMarshal(query *Query) []interface{} {
 	initSetters()
-	instances := unmarshal(ormQuery, m.tx, m.ormRegistry, NewRecordID())
+	instances := unmarshal(query, m.tx, m.ormRegistry, NewRecordID())
 	result := make([]interface{}, len(instances))
 	for i := 0; i < len(result); i++ {
 		result[i] = instances[i].Interface()
@@ -43,13 +44,13 @@ func (m *Marshaler) UnMarshal(ormQuery *OrmQuery) []interface{} {
 	return result
 }
 
-func unmarshal(query *OrmQuery, tx *Transaction, ormRegistry *OrmRegistry, id *RecordID) []reflect.Value {
+func unmarshal(query *Query, tx *Transaction, ormRegistry *OrmRegistry, id *RecordID) []reflect.Value {
 	result := make([]reflect.Value, 0)
-	mainTable,e:=query.MainTable()
-	if e!=nil {
+	mainTable, e := query.MainTable()
+	if e != nil {
 		return nil
 	}
-	table:=ormRegistry.Table(mainTable.Type().Name())
+	table := ormRegistry.Table(mainTable.Type().Name())
 	records := tx.AllRecords(table.Name())
 	for _, record := range records {
 		if record.Get(RECORD_LEVEL).Int() == 0 || !query.OnlyTopLevel() {

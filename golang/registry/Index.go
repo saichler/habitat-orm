@@ -113,12 +113,12 @@ func (index *Index) Table() *Table {
 }
 
 func (index *Index) CriteriaStatement() string {
-	buff:=NewStringBuilder("")
-	for i,_:=range index.columns {
-		if i>0 {
+	buff := NewStringBuilder("")
+	for i, _ := range index.columns {
+		if i > 0 {
 			buff.Append(" AND ")
 		}
-		buff.Append("#").Append(strconv.Itoa(i+1))
+		buff.Append("#").Append(strconv.Itoa(i + 1))
 	}
 	return buff.String()
 }

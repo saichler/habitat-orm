@@ -2,6 +2,7 @@ package tests
 
 import (
 	. "github.com/saichler/habitat-orm/golang/transaction"
+	. "github.com/saichler/hql-interpreter/golang"
 	. "github.com/saichler/utils/golang"
 	. "github.com/saichler/utils/golang/tests"
 	"strconv"
@@ -12,7 +13,7 @@ import (
 func TestUnMarshalCountOnlyTopLevel(t *testing.T) {
 	tx := &Transaction{}
 	m := initMarshaler(size, tx)
-	q, e := m.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(m.OrmRegistry(), BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()
@@ -28,7 +29,7 @@ func TestUnMarshalCountOnlyTopLevel(t *testing.T) {
 func TestUnMarshalCountAllLevels(t *testing.T) {
 	tx := &Transaction{}
 	m := initMarshaler(size, tx)
-	q, e := m.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(m.OrmRegistry(), BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()
@@ -43,7 +44,7 @@ func TestUnMarshalCountAllLevels(t *testing.T) {
 func TestUnMarshalString(t *testing.T) {
 	tx := &Transaction{}
 	m := initMarshaler(size, tx)
-	q, e := m.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(m.OrmRegistry(), BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()
@@ -73,7 +74,7 @@ func TestUnMarshalString(t *testing.T) {
 func TestUnMarshalInt(t *testing.T) {
 	tx := &Transaction{}
 	m := initMarshaler(size, tx)
-	q, e := m.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(m.OrmRegistry(), BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()
@@ -103,7 +104,7 @@ func TestUnMarshalInt(t *testing.T) {
 func TestUnMarshalIntSlice(t *testing.T) {
 	tx := &Transaction{}
 	m := initMarshaler(size, tx)
-	q, e := m.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(m.OrmRegistry(), BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()
@@ -138,7 +139,7 @@ func TestUnMarshalIntSlice(t *testing.T) {
 func TestUnMarshalStringSlice(t *testing.T) {
 	tx := &Transaction{}
 	m := initMarshaler(size, tx)
-	q, e := m.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(m.OrmRegistry(), BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()
@@ -173,7 +174,7 @@ func TestUnMarshalStringSlice(t *testing.T) {
 func TestUnMarshalPtrKey(t *testing.T) {
 	tx := &Transaction{}
 	m := initMarshaler(size, tx)
-	q, e := m.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(m.OrmRegistry(), BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()
@@ -200,7 +201,7 @@ func TestUnMarshalPtrKey(t *testing.T) {
 func TestUnMarshalPtrNoKey(t *testing.T) {
 	tx := &Transaction{}
 	m := initMarshaler(size, tx)
-	q, e := m.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(m.OrmRegistry(), BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()
@@ -227,7 +228,7 @@ func TestUnMarshalPtrNoKey(t *testing.T) {
 func TestUnMarshalPtrSliceNoKey(t *testing.T) {
 	tx := &Transaction{}
 	m := initMarshaler(size, tx)
-	q, e := m.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(m.OrmRegistry(), BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()
@@ -268,7 +269,7 @@ func TestUnMarshalPtrSliceNoKey(t *testing.T) {
 func TestUnMarshalPtrSliceKey(t *testing.T) {
 	tx := &Transaction{}
 	m := initMarshaler(size, tx)
-	q, e := m.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(m.OrmRegistry(), BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()
@@ -309,7 +310,7 @@ func TestUnMarshalPtrSliceKey(t *testing.T) {
 func TestUnMarshalMap(t *testing.T) {
 	tx := &Transaction{}
 	m := initMarshaler(size, tx)
-	q, e := m.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(m.OrmRegistry(), BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()
@@ -351,7 +352,7 @@ func TestUnMarshalMap(t *testing.T) {
 func TestUnMarshalMapPtrNoKey(t *testing.T) {
 	tx := &Transaction{}
 	m := initMarshaler(size, tx)
-	q, e := m.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(m.OrmRegistry(), BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()
@@ -393,7 +394,7 @@ func TestUnMarshalMapPtrNoKey(t *testing.T) {
 func TestUnMarshalMapPtrKey(t *testing.T) {
 	tx := &Transaction{}
 	m := initMarshaler(size, tx)
-	q, e := m.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(m.OrmRegistry(), BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()

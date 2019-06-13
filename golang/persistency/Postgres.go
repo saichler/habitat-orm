@@ -86,7 +86,7 @@ func (p *Postgres) createSchema(r *OrmRegistry) {
 		panic("Unable to create schema " + p.schema + ":" + err.Error())
 	}
 
-	for tableName, table := range r.Tables() {
+	for tableName, table := range r.TablesMap() {
 		createSql := NewStringBuilder("CREATE TABLE IF NOT EXISTS ")
 		createSql.Append(p.schema).Append(".").Append(tableName).Append(" (\n")
 		createSql.Append("    ").Append(common.RECORD_LEVEL).Append("    ").Append("integer DEFAULT 0,\n")

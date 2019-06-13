@@ -94,7 +94,7 @@ func structMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Pers
 	rec.SetInterface(RECORD_LEVEL, rid.Level())
 	if table.Indexes().PrimaryIndex() == nil {
 		rec.SetInterface(RECORD_ID, rid.String())
-		rec.SetInterface(RECORD_INDEX,rid.Index)
+		rec.SetInterface(RECORD_INDEX, rid.Index)
 	}
 	subTables := make([]*Column, 0)
 	for fieldName, column := range table.Columns() {
@@ -117,11 +117,11 @@ func structMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Pers
 		tx.AddRecord(rec, tableName, recordID)
 	} else {
 		tx.AddRecord(rec, tableName, rid.String())
-		recordID=strconv.Itoa(rid.Index)
+		recordID = strconv.Itoa(rid.Index)
 	}
 
 	for _, sbColumn := range subTables {
-		isTable:=sbColumn.MetaData().ColumnTableName()!=""
+		isTable := sbColumn.MetaData().ColumnTableName() != ""
 		if isTable {
 			rid.Add(table.Name(), sbColumn.Name(), recordID)
 		}
@@ -147,7 +147,7 @@ func sliceMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Persi
 		rid.Index = i
 		v, e := marshal(value.Index(i), r, tx, pr, rid)
 		if e != nil {
-			panic("Unable To marshal! "+e.Error())
+			panic("Unable To marshal! " + e.Error())
 		}
 		if i != 0 {
 			sb.Append(",")
@@ -166,11 +166,11 @@ func mapMarshal(value reflect.Value, r *OrmRegistry, tx *Transaction, pr Persist
 	mapKeys := value.MapKeys()
 	for i, key := range mapKeys {
 		mv := value.MapIndex(key)
-		keyString:=utils.ToString(key)
-		rid.Index =i
+		keyString := utils.ToString(key)
+		rid.Index = i
 		v, e := marshal(mv, r, tx, pr, rid)
 		if e != nil {
-			panic("Unable To marshal! "+e.Error())
+			panic("Unable To marshal! " + e.Error())
 		}
 		if i > 0 {
 			sb.Append(",")

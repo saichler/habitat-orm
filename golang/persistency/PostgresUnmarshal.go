@@ -4,11 +4,12 @@ import (
 	. "github.com/saichler/habitat-orm/golang/common"
 	. "github.com/saichler/habitat-orm/golang/registry"
 	. "github.com/saichler/habitat-orm/golang/transaction"
+	. "github.com/saichler/hql-interpreter/golang"
 	. "github.com/saichler/utils/golang"
 	"reflect"
 )
 
-func (p *Postgres) Unmarshal(q *OrmQuery, r *OrmRegistry, tx *Transaction) error {
+func (p *Postgres) Unmarshal(q *Query, r *OrmRegistry, tx *Transaction) error {
 	return p.unmarshal("Node", r, tx, make(map[string]string))
 }
 

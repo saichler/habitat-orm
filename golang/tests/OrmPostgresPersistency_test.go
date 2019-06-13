@@ -4,6 +4,7 @@ import (
 	. "github.com/saichler/habitat-orm/golang/marshal"
 	. "github.com/saichler/habitat-orm/golang/persistency"
 	. "github.com/saichler/habitat-orm/golang/transaction"
+	. "github.com/saichler/hql-interpreter/golang"
 	. "github.com/saichler/utils/golang"
 	. "github.com/saichler/utils/golang/tests"
 	"strconv"
@@ -53,7 +54,7 @@ func TestOrmPostgresUnmarshalMarshal(t *testing.T) {
 	mr := initMarshaler(5, tx)
 	r := mr.OrmRegistry()
 	p.Init(r)
-	q, e := mr.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(r, BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()
@@ -68,7 +69,7 @@ func TestPosgresUnMarshalPtrNoKey(t *testing.T) {
 	mr := initMarshaler(5, tx)
 	r := mr.OrmRegistry()
 	p.Init(r)
-	q, e := mr.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e := NewQuery(r, BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()
@@ -78,7 +79,7 @@ func TestPosgresUnMarshalPtrNoKey(t *testing.T) {
 
 	m := NewMarshaler(r, nil, tx)
 
-	q, e = m.OrmRegistry().NewOrmQuery(BasicQuery)
+	q, e = NewQuery(r, BasicQuery)
 	if e != nil {
 		Error(e)
 		t.Fail()

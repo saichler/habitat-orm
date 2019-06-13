@@ -2,7 +2,7 @@ package registry
 
 import (
 	"errors"
-	. "github.com/saichler/habitat-orm/golang/registry/schema"
+	. "github.com/saichler/hql-schema/golang"
 	"reflect"
 )
 
@@ -13,7 +13,7 @@ type Table struct {
 	indexes     *Indexes
 }
 
-func (t *Table) inspect(path *TablePath) {
+func (t *Table) inspect(path *SchemaNode) {
 	if t.columns == nil {
 		t.columns = make(map[string]*Column)
 	}

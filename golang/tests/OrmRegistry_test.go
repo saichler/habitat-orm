@@ -10,7 +10,7 @@ import (
 
 func TestOrmRegistryMainTable(t *testing.T) {
 	registry := OrmRegistry{}
-	registry.Register(Node{})
+	registry.Register(Node{}, nil)
 	nodeTable := registry.Table("Node")
 	if nodeTable == nil {
 		t.Fail()
@@ -21,7 +21,7 @@ func TestOrmRegistryMainTable(t *testing.T) {
 
 func TestOrmRegistryTitleTag(t *testing.T) {
 	registry := OrmRegistry{}
-	registry.Register(Node{})
+	registry.Register(Node{}, nil)
 	nodeTable := registry.Table("Node")
 	if nodeTable.Columns()["String"].MetaData().Title() != "Hello" {
 		t.Fail()
@@ -32,7 +32,7 @@ func TestOrmRegistryTitleTag(t *testing.T) {
 
 func TestOrmRegistrySizeTag(t *testing.T) {
 	registry := OrmRegistry{}
-	registry.Register(Node{})
+	registry.Register(Node{}, nil)
 	nodeTable := registry.Table("Node")
 	if nodeTable.Columns()["String7"].MetaData().Size() != 5 {
 		t.Fail()
@@ -43,7 +43,7 @@ func TestOrmRegistrySizeTag(t *testing.T) {
 
 func TestOrmRegistryIgnoreTag(t *testing.T) {
 	registry := OrmRegistry{}
-	registry.Register(Node{})
+	registry.Register(Node{}, nil)
 	nodeTable := registry.Table("Node")
 	if !nodeTable.Columns()["String2"].MetaData().Ignore() {
 		t.Fail()
@@ -54,7 +54,7 @@ func TestOrmRegistryIgnoreTag(t *testing.T) {
 
 func TestOrmRegistryMaskTag(t *testing.T) {
 	registry := OrmRegistry{}
-	registry.Register(Node{})
+	registry.Register(Node{}, nil)
 	nodeTable := registry.Table("Node")
 	if !nodeTable.Columns()["String3"].MetaData().Mask() {
 		t.Fail()
@@ -65,7 +65,7 @@ func TestOrmRegistryMaskTag(t *testing.T) {
 
 func TestOrmRegistryColumns(t *testing.T) {
 	registry := OrmRegistry{}
-	registry.Register(Node{})
+	registry.Register(Node{}, nil)
 	nodeTable := registry.Table("Node")
 	if len(nodeTable.Columns()) == 0 {
 		t.Fail()
@@ -76,7 +76,7 @@ func TestOrmRegistryColumns(t *testing.T) {
 
 func TestOrmRegistrySubNode1(t *testing.T) {
 	registry := OrmRegistry{}
-	registry.Register(Node{})
+	registry.Register(Node{}, nil)
 	nodeTable := registry.Table("SubNode1")
 	if nodeTable == nil {
 		t.Fail()
@@ -87,7 +87,7 @@ func TestOrmRegistrySubNode1(t *testing.T) {
 
 func TestOrmRegistrySubNode4(t *testing.T) {
 	registry := OrmRegistry{}
-	registry.Register(Node{})
+	registry.Register(Node{}, nil)
 	nodeTable := registry.Table("SubNode4")
 	if nodeTable == nil {
 		t.Fail()
@@ -98,7 +98,7 @@ func TestOrmRegistrySubNode4(t *testing.T) {
 
 func TestOrmRegistryPrimaryIndex(t *testing.T) {
 	registry := OrmRegistry{}
-	registry.Register(Node{})
+	registry.Register(Node{}, nil)
 	nodeTable := registry.Table("Node")
 	if nodeTable.Indexes().PrimaryIndex() == nil {
 		t.Fail()
@@ -109,7 +109,7 @@ func TestOrmRegistryPrimaryIndex(t *testing.T) {
 
 func TestOrmRegistryUniqueIndexes(t *testing.T) {
 	registry := OrmRegistry{}
-	registry.Register(Node{})
+	registry.Register(Node{}, nil)
 	nodeTable := registry.Table("Node")
 	if nodeTable.Indexes().UniqueIndexes() == nil {
 		t.Fail()
@@ -146,7 +146,7 @@ func TestOrmRegistryUniqueIndexes(t *testing.T) {
 
 func TestOrmRegistryNonUniqueIndexes(t *testing.T) {
 	registry := OrmRegistry{}
-	registry.Register(Node{})
+	registry.Register(Node{}, nil)
 	nodeTable := registry.Table("Node")
 	if nodeTable.Indexes().NonUniqueIndexes() == nil {
 		t.Fail()
@@ -157,8 +157,8 @@ func TestOrmRegistryNonUniqueIndexes(t *testing.T) {
 
 func TestOrmRegistryTablePaths(t *testing.T) {
 	registry := OrmRegistry{}
-	registry.Register(Node{})
-	tp := registry.Schema().TablePaths()
+	registry.Register(Node{}, nil)
+	tp := registry.Schema().Nodes()
 	for k, _ := range tp {
 		Info(k)
 	}

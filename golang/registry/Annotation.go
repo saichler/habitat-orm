@@ -1,6 +1,6 @@
 package registry
 
 type Annotation struct {
-	name string
+	name  string
 	value string
 }
